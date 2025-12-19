@@ -1,14 +1,13 @@
 import axios from "axios";
 
-// Usamos el proxy local configurado en next.config.mjs para evitar CORS
-// El rewrite redirige /api/proxy -> https://wiremock.dev.eroninternational.com/api/movies
-const API_BASE_URL = "/api/proxy";
+// Usamos /api-proxy/ que se redirige en next.config.mjs a la URL definida en el .env
+const API_BASE_URL = "/api-proxy/";
 
-// Axios instance con configuración base
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
+    Accept: "application/json",
     "Content-Type": "application/json",
   },
 });
@@ -16,93 +15,64 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error.message);
+    // ESTO ES LO QUE NECESITO QUE MIRES EN LA CONSOLA (F12)
+    console.group("DEBUG - Error de API");
+    console.error("URL Intentada:", error.config?.url);
+    console.error("BaseURL:", error.config?.baseURL);
+    console.error("Status:", error.response?.status);
+    console.error("Data de respuesta:", error.response?.data);
+    console.groupEnd();
     return Promise.reject(error);
   }
 );
 
-/**
- * Obtiene películas con paginación
- * @param {number} page - Número de página
- * @param {number|string} perPage - Elementos por página (default 10)
- */
 export const getMovies = async (page = 1, perPage = 10) => {
   try {
-    const params = { page };
+    // Al no poner "/" al principio de "search", Axios lo concatena a la baseURL correctamente
+    const response = await apiClient.get("search", {
+      params: {
+        page,
+        per_page: perPage === "all" ? 100 : perPage,
+      },
+    });
 
-    // Configurar per_page
-    if (perPage === "all") {
-      params.per_page = 100; // Asumimos un número alto para "todas"
-    } else if (perPage) {
-      params.per_page = perPage;
-    }
-
-    const response = await apiClient.get("/search", { params });
     return {
       data: response.data,
       error: null,
     };
   } catch (error) {
-    console.error("Error completo:", error);
     return {
       data: null,
-      error:
-        error.response?.data?.message ||
-        `Error de conexión (${error.message}). Es posible que la API externa tenga restricciones.`,
+      error: `Error: ${
+        error.response?.status || error.message
+      }. Mira la consola para detalles.`,
     };
   }
 };
 
-/**
- * Busca una película por título exacto
- */
 export const getMovieByTitle = async (title) => {
   try {
-    const response = await getMovies(1);
-
-    if (response.error) {
-      return { data: null, error: response.error };
-    }
+    const response = await getMovies(1, 100);
+    if (response.error) return { data: null, error: response.error };
 
     const decodedTitle = decodeURIComponent(title).toLowerCase();
     const movie = response.data.data?.find(
       (m) => m.Title.toLowerCase() === decodedTitle
     );
 
-    if (!movie) {
-      return {
-        data: null,
-        error: "Película no encontrada en el catálogo actual",
-      };
-    }
-
-    return { data: movie, error: null };
+    return movie
+      ? { data: movie, error: null }
+      : { data: null, error: "Película no encontrada" };
   } catch (error) {
-    return {
-      data: null,
-      error: error.message || "Error al cargar la película",
-    };
+    return { data: null, error: error.message };
   }
 };
 
 export const getAllMovies = async () => {
-  try {
-    const result = await getMovies(1);
-    if (result.error) return { data: [], error: result.error };
-    return {
-      data: result.data.data || [],
-      error: null,
-    };
-  } catch (error) {
-    return {
-      data: [],
-      error: error.message,
-    };
-  }
+  const result = await getMovies(1, 100);
+  return result.error
+    ? { data: [], error: result.error }
+    : { data: result.data.data || [], error: null };
 };
 
-export default {
-  getMovies,
-  getMovieByTitle,
-  getAllMovies,
-};
+export default { getMovies, getMovieByTitle, getAllMovies };
