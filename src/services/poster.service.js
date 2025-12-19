@@ -1,9 +1,7 @@
 import axios from "axios";
 
-// OMDb API Key desde el .env
-// Recuerda usar el prefijo NEXT_PUBLIC_ para que sea accesible en el cliente
-const OMDB_API_KEY = process.env.NEXT_PUBLIC_OMDB_API_KEY;
-const API_URL = "https://www.omdbapi.com/";
+// Ahora usamos nuestra propia API Route para no exponer la Key en el cliente
+const API_URL = "/api/poster";
 
 /**
  * Servicio para buscar posters de películas y cachearlos en localStorage
@@ -17,15 +15,16 @@ export const getPosterByTitle = async (title) => {
     const cached = localStorage.getItem(cacheKey);
     if (cached) return cached;
   } catch (e) {
-    console.warn("Storage no disponible");
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Storage no disponible");
+    }
   }
 
-  // 2. Si no está en cache, buscar en la API de OMDb
+  // 2. Si no está en cache, buscar en nuestra API Route (que tiene la key segura en el server)
   try {
     const response = await axios.get(API_URL, {
       params: {
         t: title,
-        apikey: OMDB_API_KEY,
       },
     });
 
@@ -42,11 +41,7 @@ export const getPosterByTitle = async (title) => {
 
     return posterUrl;
   } catch (error) {
-    if (error.response?.status === 401) {
-      console.error(
-        "OMDb API Key inválida o expirada. Por favor obtén una en http://www.omdbapi.com/"
-      );
-    } else {
+    if (process.env.NODE_ENV === "development") {
       console.error(`Error buscando poster para ${title}:`, error);
     }
     return null;

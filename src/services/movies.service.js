@@ -15,13 +15,15 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // ESTO ES LO QUE NECESITO QUE MIRES EN LA CONSOLA (F12)
-    console.group("DEBUG - Error de API");
-    console.error("URL Intentada:", error.config?.url);
-    console.error("BaseURL:", error.config?.baseURL);
-    console.error("Status:", error.response?.status);
-    console.error("Data de respuesta:", error.response?.data);
-    console.groupEnd();
+    // Solo mostramos logs detallados en desarrollo para evitar filtrar información
+    if (process.env.NODE_ENV === "development") {
+      console.group("DEBUG - Error de API");
+      console.error("URL Intentada:", error.config?.url);
+      console.error("BaseURL:", error.config?.baseURL);
+      console.error("Status:", error.response?.status);
+      console.error("Data de respuesta:", error.response?.data);
+      console.groupEnd();
+    }
     return Promise.reject(error);
   }
 );
