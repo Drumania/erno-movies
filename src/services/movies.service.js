@@ -69,10 +69,37 @@ export const getMovieByTitle = async (slug) => {
 };
 
 export const getAllMovies = async () => {
-  const result = await getMovies(1, 100);
-  return result.error
-    ? { data: [], error: result.error }
-    : { data: result.data.data || [], error: null };
+  try {
+    let allMovies = [];
+    let currentPage = 1;
+    let totalPages = 1;
+
+    // Hacemos la primera petición para obtener la data y el total de páginas
+    const firstResult = await getMovies(1, 100);
+    if (firstResult.error) return { data: [], error: firstResult.error };
+
+    allMovies = [...(firstResult.data.data || [])];
+    totalPages = firstResult.data.total_pages || 1;
+
+    // Si hay más páginas, las traemos todas
+    const pagePromises = [];
+    for (let p = 2; p <= totalPages; p++) {
+      pagePromises.push(getMovies(p, 100));
+    }
+
+    if (pagePromises.length > 0) {
+      const remainingResults = await Promise.all(pagePromises);
+      remainingResults.forEach((res) => {
+        if (!res.error && res.data?.data) {
+          allMovies = [...allMovies, ...res.data.data];
+        }
+      });
+    }
+
+    return { data: allMovies, error: null };
+  } catch (error) {
+    return { data: [], error: error.message };
+  }
 };
 
 export default { getMovies, getMovieByTitle, getAllMovies };
