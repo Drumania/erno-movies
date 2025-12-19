@@ -24,10 +24,23 @@ export async function GET(request) {
     return NextResponse.json(response.data);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Error in Poster Proxy:", error.message);
+      console.error(
+        "Error in Poster Proxy:",
+        error.response?.data || error.message
+      );
     }
+
+    // Evitamos el crash si apiKey es undefined
+    const keyInfo = apiKey
+      ? `Present (Ends in ${String(apiKey).slice(-3)})`
+      : "MISSING";
+
     return NextResponse.json(
-      { error: "Failed to fetch from OMDb" },
+      {
+        error: "Failed to fetch from OMDb",
+        details: error.response?.data || error.message,
+        keyUsed: keyInfo,
+      },
       { status: 500 }
     );
   }

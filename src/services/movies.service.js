@@ -1,4 +1,5 @@
 import axios from "axios";
+import { slugify } from "@/lib/utils";
 
 // Usamos /api-proxy/ que se redirige en next.config.mjs a la URL definida en el .env
 const API_BASE_URL = "/api-proxy/";
@@ -52,15 +53,12 @@ export const getMovies = async (page = 1, perPage = 10) => {
   }
 };
 
-export const getMovieByTitle = async (title) => {
+export const getMovieByTitle = async (slug) => {
   try {
-    const response = await getMovies(1, 100);
+    const response = await getAllMovies();
     if (response.error) return { data: null, error: response.error };
 
-    const decodedTitle = decodeURIComponent(title).toLowerCase();
-    const movie = response.data.data?.find(
-      (m) => m.Title.toLowerCase() === decodedTitle
-    );
+    const movie = response.data?.find((m) => slugify(m.Title) === slug);
 
     return movie
       ? { data: movie, error: null }

@@ -10,6 +10,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getAllMovies } from "@/services/movies.service";
+import { slugify } from "@/lib/utils";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
@@ -33,7 +34,7 @@ export function Header() {
     if (response.data && response.data.length > 0) {
       const randomIndex = Math.floor(Math.random() * response.data.length);
       const randomMovie = response.data[randomIndex];
-      router.push(`/movies/${encodeURIComponent(randomMovie.Title)}`);
+      router.push(`/movies/${slugify(randomMovie.Title)}`);
     }
   };
 

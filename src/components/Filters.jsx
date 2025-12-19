@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   SlidersHorizontal,
+  Loader2,
 } from "lucide-react";
 import { Pagination } from "@/components/Pagination";
 import { useState } from "react";
@@ -30,6 +31,7 @@ export function Filters({
   currentPage,
   totalPages,
   onPageChange,
+  loading,
 }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -331,9 +333,15 @@ export function Filters({
 
       <div className="flex items-center gap-2 text-sm text-muted-foreground ml-1">
         <span>Total:</span>
-        <span className="font-semibold text-foreground">
-          {total} encontrados
-        </span>
+        <div className="flex items-center gap-2">
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          ) : (
+            <span className="font-semibold text-foreground">
+              {total} encontrados
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { usePoster } from "@/hooks/usePoster";
 
+import { slugify } from "@/lib/utils";
+import placeholderImage from "@/assets/movieplaceholder.png";
+import Image from "next/image";
+
 /**
  * Card de película estilo Netflix premium
  * Con hover effect, metadata y animaciones suaves
@@ -32,7 +36,7 @@ export const MovieCard = ({ movie }) => {
   };
 
   return (
-    <Link href={`/movies/${encodeURIComponent(movie.Title)}`} passHref>
+    <Link href={`/movies/${slugify(movie.Title)}`} passHref>
       <Card
         className="group relative overflow-hidden border border-border/50 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 cursor-pointer flex flex-col h-full"
         onMouseEnter={() => setIsHovered(true)}
@@ -48,17 +52,29 @@ export const MovieCard = ({ movie }) => {
               loading="lazy"
             />
           ) : (
-            /* Icon de película placeholder */
-            <div className="absolute inset-0 flex items-center justify-center z-0">
-              <svg
-                className={`w-16 h-16 text-muted-foreground/20 ${
-                  loadingPoster ? "animate-pulse" : ""
+            /* Placeholder Image */
+            <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
+              <Image
+                src={placeholderImage}
+                alt="Sin poster"
+                className={`w-full h-full object-cover opacity-40 transition-opacity ${
+                  loadingPoster ? "animate-pulse" : "opacity-40"
                 }`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-              </svg>
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+                <svg
+                  className={`w-12 h-12 text-muted-foreground/40 mb-2 ${
+                    loadingPoster ? "animate-pulse" : ""
+                  }`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                </svg>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-bold">
+                  {loadingPoster ? "Buscando..." : "Imagen no disponible"}
+                </span>
+              </div>
             </div>
           )}
 

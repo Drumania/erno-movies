@@ -9,15 +9,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
+import placeholderImage from "@/assets/movieplaceholder.png";
+import Image from "next/image";
 
 export default function MovieDetailPage() {
   const params = useParams();
   const router = useRouter();
-  // Decode the title from the URL
-  const movieTitle = params?.title ? decodeURIComponent(params.title) : "";
+  // El parámetro ahora es un slug (ej: magic-in-the-moonlight)
+  const movieSlug = params?.title || "";
 
-  const { movie, loading, error } = useMovie(movieTitle);
-  const { posterUrl } = usePoster(movieTitle);
+  const { movie, loading, error } = useMovie(movieSlug);
+  const { posterUrl } = usePoster(movie?.Title || movieSlug);
 
   // Helper para formatear metadata
   const InfoRow = ({ label, value }) => (
@@ -108,7 +110,6 @@ export default function MovieDetailPage() {
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Navigation */}
-        {/* Navigation */}
         <div className="mb-0 flex items-center justify-between">
           <Link
             href="/"
@@ -143,16 +144,27 @@ export default function MovieDetailPage() {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-                  <svg
-                    className="w-24 h-24 text-gray-700"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                  </svg>
+                <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 overflow-hidden">
+                  <Image
+                    src={placeholderImage}
+                    alt="Sin poster"
+                    className="absolute inset-0 w-full h-full object-cover opacity-50"
+                  />
+                  <div className="relative z-10 flex flex-col items-center justify-center text-center p-6">
+                    <svg
+                      className="w-20 h-20 text-muted-foreground/40 mb-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                    </svg>
+                    <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
+                      Imagen no disponible
+                    </p>
+                  </div>
                 </div>
               )}
+
               {/* Overlay with rating */}
               <div className="absolute top-4 right-4">
                 <Badge

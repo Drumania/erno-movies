@@ -35,6 +35,7 @@ export default function Home() {
           onClearFilters={clearFilters}
           hasActiveFilters={hasActiveFilters}
           total={total}
+          loading={loading}
         />
 
         {/* Error State */}
