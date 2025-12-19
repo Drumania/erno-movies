@@ -110,7 +110,7 @@ export default function MovieDetailPage() {
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Navigation */}
-        <div className="mb-0 flex items-center justify-between">
+        <div className="mb-0 flex items-center mb-4 justify-between">
           <Link
             href="/"
             className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors group"
@@ -130,7 +130,7 @@ export default function MovieDetailPage() {
                 />
               </svg>
             </div>
-            <span className="font-medium">Volver al catálogo</span>
+            <span className="font-medium ">Volver al catálogo</span>
           </Link>
         </div>
         <div className="grid lg:grid-cols-[350px_1fr] gap-10 lg:gap-16 items-start">
