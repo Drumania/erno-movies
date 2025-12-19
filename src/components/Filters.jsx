@@ -144,6 +144,41 @@ export function Filters({
             </Select>
           </div>
 
+          {/* Genre */}
+          <div className="flex flex-col gap-1.5">
+            <label
+              className={`text-xs ml-1 transition-colors ${
+                filters.genre && filters.genre !== "all"
+                  ? "font-bold text-foreground"
+                  : "font-medium text-muted-foreground"
+              }`}
+            >
+              Género
+            </label>
+            <Select
+              value={filters.genre}
+              onValueChange={(val) => handleSelectChange("genre", val)}
+            >
+              <SelectTrigger
+                className={`w-[140px] transition-colors ${
+                  filters.genre && filters.genre !== "all"
+                    ? "border-foreground/40 ring-1 ring-black"
+                    : ""
+                }`}
+              >
+                <SelectValue placeholder="Género" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {filterOptions.genres.map((genre) => (
+                  <SelectItem key={genre} value={genre}>
+                    {genre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Rated */}
           <div className="flex flex-col gap-1.5">
             <label

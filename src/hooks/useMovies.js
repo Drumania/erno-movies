@@ -24,6 +24,7 @@ export const useMovies = () => {
     director: "all",
     writer: "all",
     actors: "all",
+    genre: "all",
     sort: "", // "released_desc"
   });
 
@@ -34,6 +35,7 @@ export const useMovies = () => {
     directors: [],
     writers: [],
     actors: [],
+    genres: [],
   });
 
   // 1. Fetch de TODAS las películas (navegando las páginas)
@@ -78,6 +80,7 @@ export const useMovies = () => {
     const directors = new Set();
     const writers = new Set();
     const actors = new Set();
+    const genres = new Set();
 
     movies.forEach((m) => {
       if (m.Year) years.add(m.Year);
@@ -92,6 +95,9 @@ export const useMovies = () => {
       if (m.Actors) {
         m.Actors.split(",").forEach((a) => actors.add(a.trim()));
       }
+      if (m.Genre) {
+        m.Genre.split(",").forEach((g) => genres.add(g.trim()));
+      }
     });
 
     setFilterOptions({
@@ -100,6 +106,7 @@ export const useMovies = () => {
       directors: Array.from(directors).sort(),
       writers: Array.from(writers).sort(),
       actors: Array.from(actors).sort(),
+      genres: Array.from(genres).sort(),
     });
   };
 
@@ -121,6 +128,9 @@ export const useMovies = () => {
     }
     if (filters.rated && filters.rated !== "all") {
       result = result.filter((m) => m.Rated === filters.rated);
+    }
+    if (filters.genre && filters.genre !== "all") {
+      result = result.filter((m) => m.Genre?.includes(filters.genre));
     }
 
     // Multi-value checks (contains)
@@ -197,6 +207,7 @@ export const useMovies = () => {
       director: "all",
       writer: "all",
       actors: "all",
+      genre: "all",
       sort: "",
     });
   };
@@ -208,6 +219,7 @@ export const useMovies = () => {
     filters.director !== "all" ||
     filters.writer !== "all" ||
     filters.actors !== "all" ||
+    filters.genre !== "all" ||
     filters.sort !== "";
 
   return {
