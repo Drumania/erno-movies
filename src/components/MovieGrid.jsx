@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const MovieGrid = ({ movies, loading }) => {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {Array.from({ length: 10 }).map((_, index) => (
           <div key={index} className="space-y-3">
             <Skeleton className="aspect-[2/3] w-full rounded-lg" />
@@ -48,7 +48,7 @@ export const MovieGrid = ({ movies, loading }) => {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 animate-in fade-in duration-500">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 animate-in fade-in duration-500">
       {movies.map((movie, index) => (
         <div
           key={`${movie.Title}-${index}`}

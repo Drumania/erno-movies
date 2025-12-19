@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMovie } from "@/hooks/useMovie";
+import { usePoster } from "@/hooks/usePoster";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function MovieDetailPage() {
   const params = useParams();
@@ -17,6 +17,7 @@ export default function MovieDetailPage() {
   const movieTitle = params?.title ? decodeURIComponent(params.title) : "";
 
   const { movie, loading, error } = useMovie(movieTitle);
+  const { posterUrl } = usePoster(movieTitle);
 
   // Helper para formatear metadata
   const InfoRow = ({ label, value }) => (
@@ -107,7 +108,8 @@ export default function MovieDetailPage() {
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Navigation */}
-        <div className="mb-8 md:mb-12 flex items-center justify-between">
+        {/* Navigation */}
+        <div className="mb-0 flex items-center justify-between">
           <Link
             href="/"
             className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors group"
@@ -129,22 +131,28 @@ export default function MovieDetailPage() {
             </div>
             <span className="font-medium">Volver al catálogo</span>
           </Link>
-
-          <ThemeToggle />
         </div>
         <div className="grid lg:grid-cols-[350px_1fr] gap-10 lg:gap-16 items-start">
           {/* Left Column: Poster & Actions */}
           <div className="space-y-6">
             <div className="aspect-[2/3] rounded-xl overflow-hidden shadow-2xl bg-muted relative group ring-1 ring-white/10">
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-                <svg
-                  className="w-24 h-24 text-gray-700"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                </svg>
-              </div>
+              {posterUrl ? (
+                <img
+                  src={posterUrl}
+                  alt={movie.Title}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                  <svg
+                    className="w-24 h-24 text-gray-700"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                  </svg>
+                </div>
+              )}
               {/* Overlay with rating */}
               <div className="absolute top-4 right-4">
                 <Badge

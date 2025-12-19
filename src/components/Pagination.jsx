@@ -5,7 +5,12 @@ import { Button } from "@/components/ui/button";
 /**
  * Componente de paginación premium estilo Netflix
  */
-export const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+export const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  className = "mt-12 mb-8",
+}) => {
   // Generar array de páginas a mostrar
   const getPageNumbers = () => {
     const pages = [];
@@ -67,7 +72,7 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   }
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-12 mb-8">
+    <div className={`flex items-center justify-center gap-2 ${className}`}>
       {/* Botón Previous */}
       <Button
         variant="outline"

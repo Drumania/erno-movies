@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getMovieByTitle, getMovies } from "@/services/movies.service";
+import { getAllMovies } from "@/services/movies.service";
 
 /**
  * Hook para obtener una película específica por título
- * Intenta buscar en cache primero, luego en la API
  */
 export const useMovie = (title) => {
   const [movie, setMovie] = useState(null);
@@ -22,14 +21,8 @@ export const useMovie = (title) => {
       setLoading(true);
       setError(null);
 
-      // Estrategia: buscar en todas las páginas hasta encontrar
-      // En producción, habría un endpoint específico
-      let found = false;
-      let currentPage = 1;
-      let totalPages = 1;
-
-      while (!found && currentPage <= totalPages) {
-        const response = await getMovies(currentPage);
+      try {
+        const response = await getAllMovies();
 
         if (response.error) {
           setError(response.error);
@@ -37,25 +30,29 @@ export const useMovie = (title) => {
           return;
         }
 
-        totalPages = response.data.total_pages;
-        const movieData = response.data.data?.find(
-          (m) =>
-            m.Title.toLowerCase() === decodeURIComponent(title).toLowerCase()
+        const buscaTitulo = title.trim().toLowerCase();
+
+        // Buscamos la película ignorando espacios y mayúsculas
+        const movieData = response.data?.find(
+          (m) => m.Title.trim().toLowerCase() === buscaTitulo
         );
 
         if (movieData) {
           setMovie(movieData);
-          found = true;
-          setLoading(false);
-          return;
+        } else {
+          console.group("Movie Not Found Debug");
+          console.log("Input Title:", title);
+          console.log("Sought (clean):", buscaTitulo);
+          console.log(
+            "Available Titles (first 5):",
+            response.data?.slice(0, 5).map((m) => m.Title)
+          );
+          console.groupEnd();
+          setError("Película no encontrada");
         }
-
-        currentPage++;
-      }
-
-      // No se encontró la película
-      if (!found) {
-        setError("Película no encontrada");
+      } catch (err) {
+        setError(err.message);
+      } finally {
         setLoading(false);
       }
     };

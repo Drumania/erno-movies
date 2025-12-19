@@ -1,156 +1,237 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { getMovies } from "@/services/movies.service";
 
 /**
- * Hook para manejar la lista de películas con paginación y filtros
+ * Hook para manejar la lista de películas con paginación y filtros complejos del lado del cliente
  */
 export const useMovies = () => {
-  const [movies, setMovies] = useState([]);
-  const [allMovies, setAllMovies] = useState([]); // Para filtros
-  const [filteredMovies, setFilteredMovies] = useState([]);
+  // Datos crudos
+  const [allMovies, setAllMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [total, setTotal] = useState(0);
 
-  // Filtros
+  // Estados de paginación
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+
+  // Estados de filtros
   const [filters, setFilters] = useState({
-    director: "",
-    genre: "",
-    year: "",
+    search: "", // Title search
+    year: "all",
+    rated: "all",
+    director: "all",
+    writer: "all",
+    actors: "all",
+    sort: "", // "released_desc"
   });
 
-  // Fetch películas por página
-  const fetchMovies = useCallback(
-    async (pageNumber, limit = perPage) => {
-      setLoading(true);
-      setError(null);
+  // Opciones generadas dinámicamente
+  const [filterOptions, setFilterOptions] = useState({
+    years: [],
+    rated: [],
+    directors: [],
+    writers: [],
+    actors: [],
+  });
 
-      const response = await getMovies(pageNumber, limit);
+  // 1. Fetch de TODAS las películas (navegando las páginas)
+  const fetchAllData = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Pedimos la primera página para saber cuántas son
+      const firstPage = await getMovies(1, 10);
+      if (firstPage.error) throw new Error(firstPage.error);
 
-      if (response.error) {
-        setError(response.error);
-        setLoading(false);
-        return;
+      let moviesAccumulator = [...(firstPage.data.data || [])];
+      const totalPages = firstPage.data.total_pages;
+
+      // Si hay más páginas, las pedimos en paralelo o secuencia
+      if (totalPages > 1) {
+        const promises = [];
+        for (let i = 2; i <= totalPages; i++) {
+          promises.push(getMovies(i, 10));
+        }
+
+        const results = await Promise.all(promises);
+        results.forEach((res) => {
+          if (res.data?.data) {
+            moviesAccumulator = [...moviesAccumulator, ...res.data.data];
+          }
+        });
       }
 
-      const {
-        data,
-        page: currentPage,
-        per_page,
-        total,
-        total_pages,
-      } = response.data;
-
-      setMovies(data || []);
-      setPage(currentPage);
-      // Si la API devuelve el per_page usado, lo usamos para confirmar,
-      // pero mantenemos el estado local si es 'all' o custom
-      if (typeof limit === "number") {
-        setPerPage(per_page);
-      }
-      setTotal(total);
-      setTotalPages(total_pages);
+      setAllMovies(moviesAccumulator);
+      extractFilterOptions(moviesAccumulator);
+    } catch (err) {
+      setError(err.message || "Error cargando películas");
+    } finally {
       setLoading(false);
+    }
+  }, []);
 
-      if (pageNumber === 1 && allMovies.length === 0) {
-        setAllMovies(data || []);
+  // 2. Extraer opciones únicas para los selects
+  const extractFilterOptions = (movies) => {
+    const years = new Set();
+    const rated = new Set();
+    const directors = new Set();
+    const writers = new Set();
+    const actors = new Set();
+
+    movies.forEach((m) => {
+      if (m.Year) years.add(m.Year);
+      if (m.Rated) rated.add(m.Rated);
+
+      if (m.Director) {
+        m.Director.split(",").forEach((d) => directors.add(d.trim()));
       }
-    },
-    [allMovies.length, perPage]
-  );
+      if (m.Writer) {
+        m.Writer.split(",").forEach((w) => writers.add(w.trim()));
+      }
+      if (m.Actors) {
+        m.Actors.split(",").forEach((a) => actors.add(a.trim()));
+      }
+    });
 
-  // Aplicar filtros
-  const applyFilters = useCallback(() => {
-    let result = [...movies];
+    setFilterOptions({
+      years: Array.from(years).sort().reverse(),
+      rated: Array.from(rated).sort(),
+      directors: Array.from(directors).sort(),
+      writers: Array.from(writers).sort(),
+      actors: Array.from(actors).sort(),
+    });
+  };
 
-    if (filters.director) {
-      result = result.filter((movie) =>
-        movie.Director?.toLowerCase().includes(filters.director.toLowerCase())
-      );
+  // 3. Filtrar y ordenar (useMemo para optimizar)
+  const processedMovies = useMemo(() => {
+    let result = [...allMovies];
+
+    // -- Filtros --
+
+    // Search (Title)
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      result = result.filter((m) => m.Title?.toLowerCase().includes(q));
     }
 
-    if (filters.genre) {
-      result = result.filter((movie) =>
-        movie.Genre?.toLowerCase().includes(filters.genre.toLowerCase())
-      );
+    // Single Selects
+    if (filters.year && filters.year !== "all") {
+      result = result.filter((m) => m.Year === filters.year);
+    }
+    if (filters.rated && filters.rated !== "all") {
+      result = result.filter((m) => m.Rated === filters.rated);
     }
 
-    if (filters.year) {
-      result = result.filter((movie) => movie.Year === filters.year);
+    // Multi-value checks (contains)
+    if (filters.director && filters.director !== "all") {
+      result = result.filter((m) => m.Director?.includes(filters.director));
+    }
+    if (filters.writer && filters.writer !== "all") {
+      result = result.filter((m) => m.Writer?.includes(filters.writer));
+    }
+    if (filters.actors && filters.actors !== "all") {
+      result = result.filter((m) => m.Actors?.includes(filters.actors));
     }
 
-    setFilteredMovies(result);
-  }, [movies, filters]);
+    // -- Ordenamiento --
+    if (filters.sort === "released_desc") {
+      result.sort((a, b) => {
+        const dateA = new Date(a.Released).getTime();
+        const dateB = new Date(b.Released).getTime();
+        if (isNaN(dateA)) return 1;
+        if (isNaN(dateB)) return -1;
+        return dateB - dateA;
+      });
+    } else if (filters.sort === "released_asc") {
+      result.sort((a, b) => {
+        const dateA = new Date(a.Released).getTime();
+        const dateB = new Date(b.Released).getTime();
+        if (isNaN(dateA)) return 1;
+        if (isNaN(dateB)) return -1;
+        return dateA - dateB;
+      });
+    }
 
-  // Cargar primera página al montar
+    return result;
+  }, [allMovies, filters]);
+
+  // 4. Paginación del lado del cliente
+  const paginatedMovies = useMemo(() => {
+    const start = (page - 1) * perPage;
+    return processedMovies.slice(start, start + perPage);
+  }, [processedMovies, page, perPage]);
+
+  // Reset page on filter change
   useEffect(() => {
-    // Al montar usamos el default 10
-    fetchMovies(1, 10);
-  }, []); // Empty dependency array to run only once on mount
+    setPage(1);
+  }, [filters, perPage]);
 
-  // Aplicar filtros cuando cambien
+  // Initial fetch
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    fetchAllData();
+  }, [fetchAllData]);
 
-  // Cambiar de página
-  const goToPage = (pageNumber) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      fetchMovies(pageNumber, perPage);
+  // Handlers
+  const updatedGoToPage = (newPage) => {
+    const totalP = Math.ceil(processedMovies.length / perPage);
+    if (newPage >= 1 && newPage <= totalP) {
+      setPage(newPage);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
-  /**
-   * Cambiar cantidad de elementos por página
-   * @param {string|number} newPerPage - Nuevo valor (4, 8, 12, 'all')
-   */
-  const changePerPage = (newPerPage) => {
-    let limit = newPerPage;
-    if (newPerPage !== "all") {
-      limit = parseInt(newPerPage, 10);
-    }
-    setPerPage(limit);
-    fetchMovies(1, limit);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const changePerPage = (val) => {
+    setPerPage(val === "all" ? processedMovies.length : Number(val));
   };
 
-  // Actualizar filtros
-  const updateFilters = (newFilters) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
+  const updateFilter = (key, val) => {
+    setFilters((prev) => ({ ...prev, [key]: val }));
   };
 
-  // Limpiar filtros
   const clearFilters = () => {
     setFilters({
-      director: "",
-      genre: "",
-      year: "",
+      search: "",
+      year: "all",
+      rated: "all",
+      director: "all",
+      writer: "all",
+      actors: "all",
+      sort: "",
     });
   };
 
-  // Verificar si hay filtros activos
-  const hasActiveFilters = filters.director || filters.genre || filters.year;
+  const hasActiveFilters =
+    filters.search !== "" ||
+    filters.year !== "all" ||
+    filters.rated !== "all" ||
+    filters.director !== "all" ||
+    filters.writer !== "all" ||
+    filters.actors !== "all" ||
+    filters.sort !== "";
 
   return {
-    movies: hasActiveFilters ? filteredMovies : movies,
+    movies: paginatedMovies, // Mostramos la pagina actual
+    allFilteredCount: processedMovies.length, // Total real para mostrar "X resultados"
     loading,
     error,
+
+    // Pagination props
     page,
-    totalPages,
+    totalPages: Math.ceil(processedMovies.length / perPage) || 1,
     perPage,
-    total,
+    total: processedMovies.length,
+
+    // Filters props
     filters,
+    filterOptions,
     hasActiveFilters,
-    goToPage,
-    changePerPage, // Nueva función expuesta
-    updateFilters,
+
+    // Actions
+    goToPage: updatedGoToPage,
+    changePerPage,
+    updateFilters: updateFilter, // Cambio de firma: recibe (key, val) o objeto? Mejor estandarizar
+    setFiltersRaw: setFilters, // Backdoor si hace falta
     clearFilters,
-    refetch: () => fetchMovies(page, perPage),
   };
 };
