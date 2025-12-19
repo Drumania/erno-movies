@@ -166,7 +166,7 @@ export default function MovieDetailPage() {
 
             <div className="flex flex-col gap-3">
               <Button
-                className="w-full text-lg h-12 shadow-lg shadow-primary/20"
+                className="w-full cursor-pointer text-lg h-12 shadow-lg shadow-primary/20"
                 size="lg"
               >
                 <svg
@@ -181,9 +181,6 @@ export default function MovieDetailPage() {
                   />
                 </svg>
                 Ver Trailer
-              </Button>
-              <Button variant="outline" className="w-full text-lg h-12">
-                + Mi Lista
               </Button>
             </div>
           </div>
