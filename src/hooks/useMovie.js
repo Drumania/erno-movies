@@ -9,6 +9,7 @@ import { slugify } from "@/lib/utils";
  */
 export const useMovie = (slug) => {
   const [movie, setMovie] = useState(null);
+  const [allMovies, setAllMovies] = useState([]); // Guardamos todas para el asistente
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -31,8 +32,11 @@ export const useMovie = (slug) => {
           return;
         }
 
+        const data = response.data || [];
+        setAllMovies(data);
+
         // Buscamos la película comparando slugs
-        const movieData = response.data?.find((m) => slugify(m.Title) === slug);
+        const movieData = data.find((m) => slugify(m.Title) === slug);
 
         if (movieData) {
           setMovie(movieData);
@@ -51,6 +55,7 @@ export const useMovie = (slug) => {
 
   return {
     movie,
+    allMovies,
     loading,
     error,
   };

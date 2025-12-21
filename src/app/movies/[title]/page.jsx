@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
+import { PlayCircle, Clock } from "lucide-react";
+import { IaChat } from "@/components/IaChat";
 import placeholderImage from "@/assets/movieplaceholder.png";
 import Image from "next/image";
 
@@ -18,7 +20,7 @@ export default function MovieDetailPage() {
   // El parámetro ahora es un slug (ej: magic-in-the-moonlight)
   const movieSlug = params?.title || "";
 
-  const { movie, loading, error } = useMovie(movieSlug);
+  const { movie, allMovies, loading, error } = useMovie(movieSlug);
   const { posterUrl } = usePoster(movie?.Title || movieSlug);
 
   // Helper para formatear metadata
@@ -33,27 +35,37 @@ export default function MovieDetailPage() {
     </div>
   );
 
-  // Estado de carga
+  // Pantallas de Carga y Error
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6 md:p-12">
-        <div className="max-w-6xl mx-auto space-y-8">
-          <Skeleton className="h-10 w-32" /> {/* Back button */}
-          <div className="grid md:grid-cols-[300px_1fr] gap-8 md:gap-12">
-            <Skeleton className="h-[450px] w-full rounded-xl" />{" "}
-            {/* Poster placeholder */}
-            <div className="space-y-6">
-              <Skeleton className="h-12 w-3/4" /> {/* Title */}
-              <div className="flex gap-2">
-                <Skeleton className="h-6 w-20" />
-                <Skeleton className="h-6 w-20" />
-                <Skeleton className="h-6 w-20" />
-              </div>
-              <Skeleton className="h-40 w-full" /> {/* Synopsis placeholder */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12 animate-in fade-in duration-500">
+        <div className="flex flex-col gap-10">
+          <Skeleton className="h-8 w-48" /> {/* Back button skeleton */}
+          <div className="grid md:grid-cols-[300px_1fr] gap-10 lg:gap-16 items-start">
+            <Skeleton className="aspect-2/3 w-full rounded-xl" />{" "}
+            {/* Poster skeleton */}
+            <div className="space-y-8">
               <div className="space-y-4">
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-12 md:h-20 w-3/4" />{" "}
+                {/* Title skeleton */}
+                <div className="flex gap-4">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-32" />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Skeleton className="h-6 w-32" /> {/* Synopsis title */}
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+
+              <div className="bg-card/30 rounded-xl border border-border/50 p-6 md:p-8 space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
               </div>
             </div>
           </div>
@@ -61,56 +73,18 @@ export default function MovieDetailPage() {
       </div>
     );
   }
-
-  // Estado de error
-  if (error || !movie) {
+  if (error || !movie)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="max-w-md w-full p-8 text-center space-y-6 bg-card/50 backdrop-blur">
-          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto text-destructive">
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold">Película no encontrada</h2>
-          <p className="text-muted-foreground">
-            No pudimos encontrar la película que buscas. Podría haber sido
-            eliminada o el enlace es incorrecto.
-          </p>
-          <Button
-            onClick={() => router.push("/")}
-            variant="default"
-            className="w-full"
-          >
-            Volver al inicio
-          </Button>
-        </Card>
+      <div className="p-12 text-center text-destructive">
+        Película no encontrada.
       </div>
     );
-  }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden">
-      {/* Background Ambient Effect */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-20%] right-[-10%] w-[50vw] h-[50vh] bg-primary/20 blur-[120px] rounded-full opacity-50" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40vw] h-[40vh] bg-blue-500/10 blur-[100px] rounded-full opacity-30" />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12 animate-in fade-in duration-500">
+      <div className="flex flex-col gap-10">
         {/* Navigation */}
-        <div className="mb-0 flex items-center mb-4 justify-between">
+        <div className="flex items-center justify-between pb-2">
           <Link
             href="/"
             className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors group"
@@ -130,13 +104,14 @@ export default function MovieDetailPage() {
                 />
               </svg>
             </div>
-            <span className="font-medium ">Volver al catálogo</span>
+            <span className="font-medium">Volver al catálogo</span>
           </Link>
         </div>
-        <div className="grid lg:grid-cols-[350px_1fr] gap-10 lg:gap-16 items-start">
+
+        <div className="grid md:grid-cols-[300px_1fr] gap-10 lg:gap-16 items-start">
           {/* Left Column: Poster & Actions */}
           <div className="space-y-6">
-            <div className="aspect-[2/3] rounded-xl overflow-hidden shadow-2xl bg-muted relative group ring-1 ring-white/10">
+            <div className="aspect-2/3 rounded-xl overflow-hidden shadow-2xl bg-muted relative group ring-1 ring-white/10">
               {posterUrl ? (
                 <img
                   src={posterUrl}
@@ -144,28 +119,17 @@ export default function MovieDetailPage() {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
                   <Image
                     src={placeholderImage}
                     alt="Sin poster"
                     className="absolute inset-0 w-full h-full object-cover opacity-50"
                   />
-                  <div className="relative z-10 flex flex-col items-center justify-center text-center p-6">
-                    <svg
-                      className="w-20 h-20 text-muted-foreground/40 mb-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                    </svg>
-                    <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
-                      Imagen no disponible
-                    </p>
-                  </div>
+                  <p className="relative z-10 text-xs font-bold uppercase tracking-widest text-muted-foreground/60">
+                    Imagen no disponible
+                  </p>
                 </div>
               )}
-
-              {/* Overlay with rating */}
               <div className="absolute top-4 right-4">
                 <Badge
                   variant="secondary"
@@ -176,102 +140,47 @@ export default function MovieDetailPage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <Button
-                className="w-full cursor-pointer text-lg h-12 shadow-lg shadow-primary/20"
-                size="lg"
-              >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Ver Trailer
-              </Button>
-            </div>
+            <Button
+              className="w-full cursor-pointer text-lg h-12 shadow-lg shadow-primary/20"
+              size="lg"
+            >
+              <PlayCircle className="w-5 h-5 mr-2" />
+              Ver Trailer
+            </Button>
           </div>
 
           {/* Right Column: Details */}
-          <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-700">
-            {/* Header Info */}
+          <div className="space-y-8">
             <div>
               <h1 className="text-4xl md:text-6xl font-black tracking-tight text-foreground mb-4 leading-tight">
                 {movie.Title}
               </h1>
-
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-muted-foreground text-sm sm:text-base mb-6">
-                <span className="px-3 py-1 rounded-md bg-secondary/50 font-medium text-foreground border border-border/50">
+                <Badge variant="outline" className="px-3 py-1 bg-secondary/30">
                   {movie.Year}
-                </span>
+                </Badge>
                 <span>•</span>
-                <span className="flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  {movie.Runtime || "N/A"}
+                <span className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" /> {movie.Runtime || "N/A"}
                 </span>
                 <span>•</span>
                 <span className="text-primary font-medium">{movie.Genre}</span>
               </div>
             </div>
 
-            {/* Synopsis (Fake generated since API doesn't provide it in the mock list sometimes) */}
             <div className="prose prose-invert max-w-none">
-              <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                Sinopsis
-              </h3>
+              <h3 className="text-xl font-semibold mb-2">Sinopsis</h3>
               <p className="text-lg text-muted-foreground leading-relaxed">
                 {movie.Plot ||
-                  "Explora esta fascinante historia dirigida por " +
-                    movie.Director +
-                    ". Una producción que combina el talento de " +
-                    movie.Actors +
-                    " en una narrativa inolvidable del género " +
-                    movie.Genre +
-                    "."}
+                  `Explora esta fascinante historia dirigida por ${movie.Director}. Una producción que combina el talento de ${movie.Actors} en una narrativa inolvidable del género ${movie.Genre}.`}
               </p>
             </div>
 
-            {/* Cast & Crew Grid */}
             <div className="bg-card/30 backdrop-blur rounded-xl border border-border/50 p-6 md:p-8 space-y-2">
               <InfoRow label="Director" value={movie.Director} />
               <InfoRow label="Escritores" value={movie.Writer} />
               <InfoRow label="Elenco Principal" value={movie.Actors} />
               <InfoRow label="Lanzamiento" value={movie.Released} />
-            </div>
-
-            {/* Tags/Categories */}
-            <div className="pt-4">
-              <h4 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-                Etiquetas
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {movie.Genre?.split(",").map((g, i) => (
-                  <Badge
-                    key={i}
-                    variant="outline"
-                    className="text-sm py-1 px-3 hover:bg-primary/10 transition-colors cursor-default"
-                  >
-                    {g.trim()}
-                  </Badge>
-                ))}
-              </div>
             </div>
           </div>
         </div>

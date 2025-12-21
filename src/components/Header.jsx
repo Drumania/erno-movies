@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import logoEm from "@/assets/logo-em.png";
 import { Switch } from "@/components/ui/switch";
-import { Moon, Sun, Shuffle } from "lucide-react";
+import { Moon, Sun, Shuffle, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ export function Header() {
   const { theme, setTheme } = useTheme();
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isRandomLoading, setIsRandomLoading] = useState(false);
   const router = useRouter();
 
   // Avoid hydration mismatch
@@ -30,11 +31,19 @@ export function Header() {
   };
 
   const handleRandom = async () => {
-    const response = await getAllMovies();
-    if (response.data && response.data.length > 0) {
-      const randomIndex = Math.floor(Math.random() * response.data.length);
-      const randomMovie = response.data[randomIndex];
-      router.push(`/movies/${slugify(randomMovie.Title)}`);
+    setIsRandomLoading(true);
+    try {
+      const response = await getAllMovies();
+      if (response.data && response.data.length > 0) {
+        const randomIndex = Math.floor(Math.random() * response.data.length);
+        const randomMovie = response.data[randomIndex];
+        router.push(`/movies/${slugify(randomMovie.Title)}`);
+      }
+    } catch (error) {
+      console.error("Error fetching random movie:", error);
+    } finally {
+      // Small timeout to ensure the transition feels smooth if navigation is instant
+      setTimeout(() => setIsRandomLoading(false), 500);
     }
   };
 
@@ -82,10 +91,15 @@ export function Header() {
         <Button
           onClick={handleRandom}
           variant="default"
-          className="rounded-full cursor-pointer gap-2 shadow-lg shadow-primary/25 hover:scale-105 active:scale-95 transition-all text-white hidden md:flex"
+          className="rounded-full cursor-pointer gap-2 shadow-lg shadow-primary/25 hover:scale-105 active:scale-95 transition-all text-white hidden md:flex min-w-[180px]"
+          disabled={isRandomLoading}
         >
-          <Shuffle className="h-4 w-4" />
-          <span>Película Aleatoria</span>
+          {isRandomLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Shuffle className="h-4 w-4" />
+          )}
+          <span>{isRandomLoading ? "Buscando..." : "Película Aleatoria"}</span>
         </Button>
         {/* Mobile version */}
         <Button
@@ -93,8 +107,13 @@ export function Header() {
           variant="default"
           size="icon"
           className="rounded-full shadow-lg shadow-primary/25 text-white md:hidden"
+          disabled={isRandomLoading}
         >
-          <Shuffle className="h-4 w-4" />
+          {isRandomLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Shuffle className="h-4 w-4" />
+          )}
         </Button>
       </div>
 

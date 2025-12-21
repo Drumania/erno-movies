@@ -64,8 +64,15 @@ export const useMovies = () => {
         });
       }
 
-      setAllMovies(moviesAccumulator);
-      extractFilterOptions(moviesAccumulator);
+      // Deduplicar por Título y Año (evitar warnings de keys duplicadas y mejorar data)
+      const uniqueMovies = Array.from(
+        new Map(
+          moviesAccumulator.map((m) => [`${m.Title}-${m.Year}`, m])
+        ).values()
+      );
+
+      setAllMovies(uniqueMovies);
+      extractFilterOptions(uniqueMovies);
     } catch (err) {
       setError(err.message || "Error cargando películas");
     } finally {
@@ -224,6 +231,7 @@ export const useMovies = () => {
 
   return {
     movies: paginatedMovies, // Mostramos la pagina actual
+    allMovies: allMovies, // DATA COMPLETA para el Asistente IA
     allFilteredCount: processedMovies.length, // Total real para mostrar "X resultados"
     loading,
     error,
