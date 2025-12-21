@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { PlayCircle, Clock } from "lucide-react";
 import { IaChat } from "@/components/IaChat";
 import placeholderImage from "@/assets/movieplaceholder.png";
@@ -140,13 +147,36 @@ export default function MovieDetailPage() {
               </div>
             </div>
 
-            <Button
-              className="w-full cursor-pointer text-lg h-12 shadow-lg shadow-primary/20"
-              size="lg"
-            >
-              <PlayCircle className="w-5 h-5 mr-2" />
-              Ver Trailer
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  className="w-full cursor-pointer text-lg h-12 shadow-lg shadow-primary/20"
+                  size="lg"
+                >
+                  <PlayCircle className="w-5 h-5 mr-2" />
+                  Ver Trailer
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden bg-black border-zinc-800 text-white">
+                <DialogHeader className="p-4 bg-zinc-900 border-b border-zinc-800">
+                  <DialogTitle className="text-xl font-bold text-white">
+                    Trailer: {movie.Title}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="aspect-video w-full">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="w-full h-full"
+                  ></iframe>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Right Column: Details */}
